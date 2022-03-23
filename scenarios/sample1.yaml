@@ -1,0 +1,45 @@
+name: sample1
+
+setup:
+  kafka_init:
+    brokers: localhost:9092
+    topics:
+    - sample_topic1
+    - sample_topic2
+
+options:
+  faker_launch_tempo: 3
+  termination_tempo: 5
+
+fakers:
+  - name: kafka-producer
+    params:
+      brokers:
+      - localhost:9092
+      options:
+        message.timeout.ms: 5000
+      messages:
+      - topic: sample_topic1
+        key: key1
+        message: "hello world 1"
+      - topic: sample_topic2
+        key: key2
+        message: "hello world 2"
+  - name: kafka-consumer
+    params:
+      brokers:
+      - localhost:9092
+      config:
+        group_id: group1
+        topics:
+        - sample_topic1
+        - sample_topic2
+        offset: earliest
+        options:
+          enable.partition.eof: false
+          session.timeout.ms: 6000
+          enable.auto.commit: false
+          auto.commit.interval.ms: 1000
+          enable.auto.offset.store: false
+          allow.auto.create.topics: true
+      output_file: /tmp/consumer.txt

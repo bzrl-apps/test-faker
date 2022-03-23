@@ -1,0 +1,76 @@
+[package]
+name = "test-faker"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "test-faker"
+path = "src/main.rs"
+
+[profile.dev]
+split-debuginfo = "unpacked" # Faster debug builds on macOS
+
+# CI-based builds use full release optimization.  See scripts/environment/release-flags.sh.
+# This results in roughly a 5% reduction in performance when compiling locally vs when
+# compiled via the CI pipeline.
+[profile.release]
+strip = true # Do not include debug symbols in the executable.
+opt-level = "z"
+lto = true
+codegen-units = 1
+
+[profile.bench]
+debug = true
+
+[dependencies]
+# Command
+clap = "2"
+
+# async/await
+tokio = { version = "1", features = ["full"] }
+async-trait = "0.1"
+async-channel = "1"
+futures = "0.3"
+
+# Lazy static
+#once_cell = "0.1"
+lazy_static = "1.4.0"
+
+# Error
+anyhow = { version = "1.0" }
+
+# Directory / File
+glob = "0.3"
+
+# Log
+log = "0.4"
+env_logger = "0.8"
+
+# Serialization/deserialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.8.14"
+
+# Inventry = plugin registry
+inventory = "0.2"
+
+openssl = { version = "0.10", features = ["vendored"] }
+
+# Kafka
+rdkafka = { version = "0.28", features = ["default", "cmake-build", "ssl"] }
+
+# Postgres
+sqlx = { version = "0.5.1", features = [ "postgres", "runtime-tokio-rustls", "tls", "all-types" ] }
+
+## Json manipulation
+#json_ops = { path = "json-ops" }
+
+# Date time
+chrono = "0.4"
+
+# Axum
+axum = "0.4"
+tracing = "0.1"
+tracing-subscriber = { version="0.3", features = ["env-filter"] }
