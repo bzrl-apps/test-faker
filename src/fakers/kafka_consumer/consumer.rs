@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
 //use std::collections::HashMap;
-use serde_yaml::{Mapping, Value};
-use serde_json::json;
+use serde_yaml::{Mapping, Value as yamlValue};
+use serde_json::{json, Value as jsonValue};
 
-use std::fs::File;
+use std::{fs::File, io::Seek};
 use std::io::Write;
 
 use anyhow::{anyhow, Result, Error};
@@ -133,6 +133,8 @@ impl FakerMod for KafkaConsumer {
                 None => None,
             };
 
+            let mut result = Vec::<jsonValue>::new();
+
             info!("Start receving messages...");
 
             // Fuse & pin mut as recommanded in the doc of futures::select!
@@ -208,18 +210,26 @@ impl FakerMod for KafkaConsumer {
                                 debug!("Payload received from kafka topic {}: {}", m.topic(), payload);
 
                                 if let Some(ref mut f) = f_output {
-                                    let value = json!({
-                                        "topic": m.topic(),
-                                        "message": payload,
-                                    });
+                                    let payload_value: jsonValue = match serde_json::from_str(payload) {
+                                        Ok(v) => v,
+                                        Err(_e) => jsonValue::String(payload.to_string()),
+                                    };
 
-                                    let text = serde_json::to_string(&value).unwrap();
+                                    let value = json_map!(
+                                        "topic" => jsonValue::String(m.topic().to_string()),
+                                        "message" => payload_value
+                                    );
+
+                                    result.push(jsonValue::Object(value));
+
+                                    let text = serde_json::to_string_pretty(&jsonValue::Array(result.clone())).unwrap();
 
                                     //if let Err(e) = serde_json::to_writer(f, &value) {
                                         //error!("consumer: {}", e);
                                         //return Err(anyhow!(e));
                                     //}
                                     //serde_json::to_writer(f, b"\n").unwrap();
+                                    f.rewind().unwrap();
                                     f.write_all(text.as_bytes()).unwrap();
                                     f.write_all(b"\n").unwrap();
                                 }
@@ -249,7 +259,7 @@ impl FakerMod for KafkaConsumer {
 
 fn func(params: Mapping, tx: Sender<bool>, rx: Receiver<bool>) -> Pin<Box<dyn Future<Output = Result<(), Error>> + Send + Sync>> {
     Box::pin(async move {
-        let v_params = Value::Mapping(params);
+        let v_params = yamlValue::Mapping(params);
 
         let consumer: KafkaConsumer = serde_yaml::from_value(v_params)?;
 
