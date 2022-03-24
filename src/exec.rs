@@ -18,7 +18,7 @@ pub async fn exec_cmd(config: &Config, matches: &ArgMatches<'_>) -> Result<()> {
     // scenario == action
     if let Err(e) = scenario.run().await {
         error!("Running scenario: {e}");
-        return Err(anyhow!(e));
+        return Err(e);
     }
 
     Ok(())

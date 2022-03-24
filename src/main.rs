@@ -2,6 +2,7 @@ extern crate lazy_static;
 extern crate log;
 extern crate clap;
 
+use anyhow::Result;
 use log::*;
 
 use clap::{Arg, App};
@@ -13,9 +14,11 @@ mod exec;
 mod scenario;
 mod fakers;
 mod faker;
+mod verifiers;
+mod verifier;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<()>{
     let matches = App::new("test-faker")
                         .version(env!("CARGO_PKG_VERSION"))
                         .about("Test Faker helps to run fakers & verifiers to perform integration tests!")
@@ -64,12 +67,7 @@ async fn main() {
     info!("{:?}", config);
 
     match matches.subcommand() {
-        ("exec", Some(exec_matches)) => {
-            match exec::exec_cmd(&config, exec_matches).await {
-                Ok(()) => (),
-                Err(e) => { error!("{}", e.to_string()); },
-            }
-        },
-        _ => error!("Command not found"),
+        ("exec", Some(exec_matches)) => return exec::exec_cmd(&config, exec_matches).await,
+        _ => panic!("Command not found"),
     }
 }

@@ -14,6 +14,7 @@ use tokio::signal;
 use tokio::time::{sleep, Duration};
 
 use crate::faker;
+use crate::verifier;
 use crate::utils::*;
 //use crate::message::Message;
 
@@ -24,11 +25,12 @@ pub struct Scenario {
 
     #[serde(default)]
     pub setup: Option<Setup>,
+
     #[serde(default)]
     pub fakers: Vec<Faker>,
-    //#[serde(default)]
-    //pub verifiers: Vec<Verifier>,
-    //
+    #[serde(default)]
+    pub verifiers: Vec<Verifier>,
+
     #[serde(default)]
     pub teardown: Option<Teardown>,
 
@@ -52,6 +54,15 @@ pub struct KafkaInit {
 
 #[derive(Default, Debug ,Serialize, Deserialize, Clone, PartialEq)]
 pub struct Faker {
+    #[serde(default)]
+    pub name: String,
+
+    #[serde(default)]
+	pub params: Mapping,
+}
+
+#[derive(Default, Debug ,Serialize, Deserialize, Clone, PartialEq)]
+pub struct Verifier {
     #[serde(default)]
     pub name: String,
 
@@ -128,9 +139,20 @@ impl Scenario {
             _ = rx.recv() => {
                 info!("Msg of termination received from fakers. Stop running in {}s.", termination_tempo);
                 sleep(Duration::from_secs(termination_tempo)).await;
-                return Ok(());
+                //return Ok(());
+            }
+        };
+
+        info!("Launching verifiers...");
+        for v in self.verifiers.iter() {
+            if let Some(v1) = verifier::get_verifier(v.name.as_str()) {
+                info!("Starting verifier name: {}, params: {:?}", v.name, v.params);
+                let params = v.params.clone();
+                (v1.func)(params)?;
             }
         }
+
+        Ok(())
     }
 }
 
@@ -172,6 +194,7 @@ fakers:
                     ),
                 },
             ],
+            verifiers: vec![],
             teardown: None,
             options: None,
         };

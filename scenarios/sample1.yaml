@@ -42,4 +42,10 @@ fakers:
           auto.commit.interval.ms: 1000
           enable.auto.offset.store: false
           allow.auto.create.topics: true
-      output_file: /tmp/consumer.txt
+      output_file: /tmp/consumer.json
+
+verifiers:
+  - name: file-comparator
+    params:
+      expected: ./scenarios/sample1_output1.json
+      actual: /tmp/consumer.json
