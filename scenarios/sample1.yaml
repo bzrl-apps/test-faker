@@ -43,6 +43,43 @@ fakers:
           enable.auto.offset.store: false
           allow.auto.create.topics: true
       output_file: /tmp/consumer.json
+  - name: http-server
+    params:
+      host_addr: "127.0.0.1:3000"
+      routes:
+      - path: /prefix1/suffix1
+        method: "GET"
+        status: 200
+        result: |
+          {
+            "message": "hello world1"
+          }
+      - path: /prefix1/suffix2
+        method: "POST"
+        status: 200
+        body: |
+          {
+            "payload": "suffix2"
+          }
+        result: |
+          {
+            "message": "hello world2"
+          }
+      - path: /prefix1/suffix1
+        method: "DELETE"
+        status: 200
+      - path: /prefix1/suffix2
+        method: "PUT"
+        status: 200
+        body: |
+          {
+            "payload": "put suffix2"
+          }
+        result: |
+          {
+            "message": "put suffix2"
+          }
+      output_file: /tmp/httpserver.json
 
 verifiers:
   - name: file-comparator

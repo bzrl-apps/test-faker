@@ -45,7 +45,7 @@ struct Message {
 
 #[async_trait]
 impl FakerMod for KafkaProducer {
-    type Future = Pin<Box<dyn Future<Output = Result<(), Error>> + Send + Sync>>;
+    type Future = Pin<Box<dyn Future<Output = Result<(), Error>> + Send>>;
 
     fn validate_params(&self) -> Result<()> {
         if self.brokers.is_empty() {
@@ -130,7 +130,7 @@ impl FakerMod for KafkaProducer {
     }
 }
 
-fn func(params: Mapping, tx: Sender<bool>, rx: Receiver<bool>) -> Pin<Box<dyn Future<Output = Result<(), Error>> + Send + Sync>> {
+fn func(params: Mapping, tx: Sender<bool>, rx: Receiver<bool>) -> Pin<Box<dyn Future<Output = Result<(), Error>> + Send>> {
     Box::pin(async move {
         let v_params = Value::Mapping(params);
 

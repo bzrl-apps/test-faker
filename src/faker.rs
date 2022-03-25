@@ -16,7 +16,7 @@ pub trait FakerMod {
 
 pub struct Faker {
     pub name: &'static str,
-    pub func: fn(params: Mapping, tx: Sender<bool>, rx: Receiver<bool>) -> Pin<Box<dyn Future<Output = Result<(), Error>> + Send + Sync>>,
+    pub func: fn(params: Mapping, tx: Sender<bool>, rx: Receiver<bool>) -> Pin<Box<dyn Future<Output = Result<(), Error>> + Send>>,
 }
 
 inventory::collect!(Faker);
